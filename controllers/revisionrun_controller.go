@@ -18,15 +18,17 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 
+	stagetimev1beta1 "github.com/stuttgart-things/stagetime-operator/api/v1beta1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	stagetimev1beta1 "github.com/stuttgart-things/stagetime-operator/api/v1beta1"
 )
 
 // RevisionRunReconciler reconciles a RevisionRun object
@@ -54,6 +56,31 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	log := ctrllog.FromContext(ctx)
 	log.Info("⚡️ Event received! ⚡️")
 	log.Info("Request: ", "req", req)
+
+	u := &unstructured.Unstructured{}
+	u.SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "",
+		Kind:    "ConfigMap",
+		Version: "v1",
+	})
+
+	_ = r.Client.Get(context.Background(), client.ObjectKey{
+		Name:      "game-demo",
+		Namespace: "stagetime-operator-system",
+	}, u)
+
+	fmt.Println(u.Object)
+	fmt.Println(u.Object["data"])
+
+	for k, v := range u.Object {
+		fmt.Printf("key[%s] value[%s]\n", k, v)
+	}
+
+	// maps := make(map[string]interface{})
+
+	// u.Object, _ = runtime.DefaultUnstructuredConverter.ToUnstructured(maps)
+
+	// fmt.Println(maps)
 
 	return ctrl.Result{}, nil
 }

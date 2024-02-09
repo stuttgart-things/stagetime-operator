@@ -332,7 +332,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: scr.cd43.sthings-pve.labul.sva.de/stagetime-operator/stagetime-operator:24.0209.0807
+        image: scr.cd43.sthings-pve.labul.sva.de/stagetime-operator/stagetime-operator:24.0209.1045
         livenessProbe:
           httpGet:
             path: /healthz

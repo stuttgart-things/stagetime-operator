@@ -1,3 +1,4 @@
+---
 apiVersion: stagetime.sthings.tiab.ssc.sva.de/v1beta1
 kind: RevisionRun
 metadata:
@@ -9,4 +10,4 @@ metadata:
     app.kubernetes.io/created-by: stagetime-operator
   name: revisionrun-sample
 spec:
-  # TODO(user): Add fields here
+  repository: stuttgart-things
