@@ -5,16 +5,33 @@ vars:
     sh: echo ${PWD##*/}
   MODULE: github.com/{{ .GROUP }}/{{ .PROJECT_NAME }}
   #REGISTRY: eu.gcr.io
-  #REPOSITORY_NAME: stuttgart-things
+  REPOSITORY_NAME: "{{ .PROJECT_NAME }}"
   REGISTRY: scr.cd43.sthings-pve.labul.sva.de
   GROUP: stuttgart-things
-
   DATE:
     sh: date +"%y.%m%d.%H%M"
   BRANCH:
     sh: if [ $(git rev-parse --abbrev-ref HEAD) != "main" ]; then echo $(git rev-parse --abbrev-ref HEAD) ; fi
+  CONTROLLER_GEN_CMD: "./bin/controller-gen"
+  KUSTOMIZE_CMD: kustomize
+  CONTAINER_RUNTIME_CMD: nerdctl
+  CRD_DIR: config/crd/bases
 
 tasks:
+
+  manifests:
+    desc: Generate manifests w/ kustomize
+    deps: [image]
+    cmds:
+      - task: crds
+      - cd config/manager && {{ .KUSTOMIZE_CMD }} edit set image controller={{ .REGISTRY }}/{{ .REPOSITORY_NAME }}/{{ lower (.PROJECT_NAME) }}:{{ .DATE }}
+      - '{{ .KUSTOMIZE_CMD }} build config/default > ./deploy/manifests.yaml'
+
+  crds:
+    desc: Generate crds
+    deps: [lint]
+    cmds:
+      - '{{ .CONTROLLER_GEN_CMD }} rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config={{ .CRD_DIR }}'
 
   branch:
     desc: Create branch from main
@@ -56,3 +73,10 @@ tasks:
     cmds:
       - cmd: golangci-lint run
         ignore_error: true
+
+  image:
+    desc: Build container image
+    deps: [lint]
+    cmds:
+      - sudo {{ .CONTAINER_RUNTIME_CMD }} build -t {{ .REGISTRY }}/{{ .REPOSITORY_NAME }}/{{ lower (.PROJECT_NAME) }}:{{ .DATE }} .
+      - sudo {{ .CONTAINER_RUNTIME_CMD }} push {{ .REGISTRY }}/{{ .REPOSITORY_NAME }}/{{ lower (.PROJECT_NAME) }}:{{ .DATE }}

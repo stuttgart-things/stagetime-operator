@@ -1,2 +1,8 @@
 resources:
 - manager.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+images:
+- name: controller
+  newName: scr.cd43.sthings-pve.labul.sva.de/stagetime-operator/stagetime-operator
+  newTag: 24.0209.0807
