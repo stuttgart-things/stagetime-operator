@@ -19,6 +19,8 @@ package controllers
 import (
 	"context"
 
+	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -49,7 +51,9 @@ type RevisionRunReconciler struct {
 func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	log := ctrllog.FromContext(ctx)
+	log.Info("⚡️ Event received! ⚡️")
+	log.Info("Request: ", "req", req)
 
 	return ctrl.Result{}, nil
 }
