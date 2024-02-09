@@ -1,0 +1,27 @@
+# permissions for end users to view revisionruns.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: revisionrun-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: stagetime-operator
+    app.kubernetes.io/part-of: stagetime-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: revisionrun-viewer-role
+rules:
+- apiGroups:
+  - stagetime.sthings.tiab.ssc.sva.de
+  resources:
+  - revisionruns
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - stagetime.sthings.tiab.ssc.sva.de
+  resources:
+  - revisionruns/status
+  verbs:
+  - get

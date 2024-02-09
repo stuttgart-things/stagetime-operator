@@ -1,0 +1,12 @@
+apiVersion: stagetime.sthings.tiab.ssc.sva.de/v1beta1
+kind: RevisionRun
+metadata:
+  labels:
+    app.kubernetes.io/name: revisionrun
+    app.kubernetes.io/instance: revisionrun-sample
+    app.kubernetes.io/part-of: stagetime-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: stagetime-operator
+  name: revisionrun-sample
+spec:
+  # TODO(user): Add fields here

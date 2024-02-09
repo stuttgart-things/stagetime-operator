@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - stagetime.sthings.tiab.ssc.sva.de
+  resources:
+  - revisionruns
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - stagetime.sthings.tiab.ssc.sva.de
+  resources:
+  - revisionruns/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - stagetime.sthings.tiab.ssc.sva.de
+  resources:
+  - revisionruns/status
+  verbs:
+  - get
+  - patch
+  - update
