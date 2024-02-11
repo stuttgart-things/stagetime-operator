@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
@@ -35,6 +36,30 @@ import (
 type RevisionRunReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+}
+
+type Pipelinerun struct {
+	Name                 string  `json:"name"`
+	Canfail              bool    `json:"canfail"`
+	Stage                float64 `json:"stage"`
+	Params               string  `json:"params"`
+	ResolverParams       string  `json:"resolverParams"`
+	Listparams           string  `json:"listparams"`
+	Workspaces           string  `json:"workspaces"`
+	VolumeClaimTemplates string  `json:"volumeClaimTemplates"`
+}
+
+type RevisionRun struct {
+	RepoName     string        `json:"repo_name"`
+	PushedAt     string        `json:"pushed_at"`
+	Author       string        `json:"author"`
+	RepoUrl      string        `json:"repo_url"`
+	CommitId     string        `json:"commit_id"`
+	Pipelineruns []Pipelinerun `json:"pipelineruns"`
+}
+
+type Repo struct {
+	Url string `json:"url"`
 }
 
 //+kubebuilder:rbac:groups=stagetime.sthings.tiab.ssc.sva.de,resources=revisionruns,verbs=get;list;watch;create;update;patch;delete
@@ -59,18 +84,31 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	u := &unstructured.Unstructured{}
 	u.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   "",
-		Kind:    "ConfigMap",
-		Version: "v1",
+		Group:   "stagetime.sthings.tiab.ssc.sva.de",
+		Kind:    "Repo",
+		Version: "v1beta1",
 	})
 
 	_ = r.Client.Get(context.Background(), client.ObjectKey{
-		Name:      "game-demo",
+		Name:      "repo-sample",
 		Namespace: "stagetime-operator-system",
 	}, u)
 
-	fmt.Println(u.Object)
-	fmt.Println(u.Object["data"])
+	fmt.Println(u.GetObjectKind())
+	fmt.Println(u.UnstructuredContent())
+	fmt.Println(u.GetName())
+	fmt.Println(u.GetCreationTimestamp())
+
+	fmt.Println(u.UnstructuredContent()["spec"])
+	spec := u.UnstructuredContent()["spec"]
+
+	fmt.Println("SPEC!", spec)
+
+	repo := Repo{}
+	dbByte, _ := json.Marshal(spec)
+	_ = json.Unmarshal(dbByte, &repo)
+
+	fmt.Println(repo.Url)
 
 	for k, v := range u.Object {
 		fmt.Printf("key[%s] value[%s]\n", k, v)
