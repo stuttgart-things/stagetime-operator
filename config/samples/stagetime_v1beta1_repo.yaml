@@ -1,0 +1,14 @@
+---
+apiVersion: stagetime.sthings.tiab.ssc.sva.de/v1beta1
+kind: Repo
+metadata:
+  labels:
+    app.kubernetes.io/name: repo
+    app.kubernetes.io/instance: repo-sample
+    app.kubernetes.io/part-of: stagetime-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: stagetime-operator
+  name: repo-sample
+  namespace: stagetime-operator-system
+spec:
+  url: https://github.com/stuttgart-things/stuttgart-things.git
