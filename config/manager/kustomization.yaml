@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: scr.cd43.sthings-pve.labul.sva.de/stagetime-operator/stagetime-operator
-  newTag: 24.0209.2118
+  newTag: 24.0212.0931

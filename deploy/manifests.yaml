@@ -128,32 +128,6 @@ rules:
 - apiGroups:
   - stagetime.sthings.tiab.ssc.sva.de
   resources:
-  - repos
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - stagetime.sthings.tiab.ssc.sva.de
-  resources:
-  - repos/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - stagetime.sthings.tiab.ssc.sva.de
-  resources:
-  - repos/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - stagetime.sthings.tiab.ssc.sva.de
-  resources:
   - revisionruns
   verbs:
   - create
@@ -358,7 +332,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: scr.cd43.sthings-pve.labul.sva.de/stagetime-operator/stagetime-operator:24.0209.2126
+        image: scr.cd43.sthings-pve.labul.sva.de/stagetime-operator/stagetime-operator:24.0212.0931
         livenessProbe:
           httpGet:
             path: /healthz

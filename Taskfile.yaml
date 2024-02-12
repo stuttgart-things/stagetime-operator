@@ -16,6 +16,7 @@ vars:
   KUSTOMIZE_CMD: kustomize
   CONTAINER_RUNTIME_CMD: nerdctl
   CRD_DIR: config/crd/bases
+  MANIFEST_DIR: ./deploy
 
 tasks:
 
@@ -25,7 +26,15 @@ tasks:
     cmds:
       - task: crds
       - cd config/manager && {{ .KUSTOMIZE_CMD }} edit set image controller={{ .REGISTRY }}/{{ .REPOSITORY_NAME }}/{{ lower (.PROJECT_NAME) }}:{{ .DATE }}
-      - '{{ .KUSTOMIZE_CMD }} build config/default > ./deploy/manifests.yaml'
+      - '{{ .KUSTOMIZE_CMD }} build config/default > {{ .MANIFEST_DIR }}/manifests.yaml'
+
+  apply:
+    desc: Deploy manifests
+    deps: [manifests]
+    cmds:
+      # - kubectl get nodes
+      - kubectl apply -f {{ .MANIFEST_DIR }}/clusterrole.yaml
+      - kubectl apply -f {{ .MANIFEST_DIR }}/manifests.yaml
 
   crds:
     desc: Generate crds

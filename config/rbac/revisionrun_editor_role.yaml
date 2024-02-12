@@ -29,3 +29,21 @@ rules:
   - revisionruns/status
   verbs:
   - get
+- apiGroups:
+  - stagetime.sthings.tiab.ssc.sva.de
+  resources:
+  - repos
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - stagetime.sthings.tiab.ssc.sva.de
+  resources:
+  - repos/status
+  verbs:
+  - get
