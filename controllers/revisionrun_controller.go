@@ -98,65 +98,16 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	log.Info("⚡️ Event received! ⚡️")
 	log.Info("Request: ", "req", req)
 
-	// READ UNSTRUCTURED STRUCT
-
-	// u := &unstructured.Unstructured{}
-	// u.SetGroupVersionKind(schema.GroupVersionKind{
-	// 	Group:   "stagetime.sthings.tiab.ssc.sva.de",
-	// 	Kind:    "Repo",
-	// 	Version: "v1beta1",
-	// })
-
-	// _ = r.Client.Get(context.Background(), client.ObjectKey{
-	// 	Name:      "repo-sample",
-	// 	Namespace: "stagetime-operator-system",
-	// }, u)
-
-	// fmt.Println(u.UnstructuredContent()["spec"])
-	// repo1 := Repo{}
-
-	// // _ = json.Unmarshal(dbByte, &repo)
-
-	// spec := u.UnstructuredContent()["spec"]
-	// specByte, _ := json.Marshal(spec)
-	// _ = json.Unmarshal(specByte, &repo1)
-
-	// fmt.Println("REPO1", repo1)
-
 	repo2 := Repo{}
 	repoSpec := getUnstructuredStructSpec("stagetime.sthings.tiab.ssc.sva.de", "Repo", "v1beta1", "repo-sample", "stagetime-operator-system", r)
 
 	_ = json.Unmarshal(repoSpec, &repo2)
-	fmt.Println(repo2)
 
-	fmt.Println("REPO2", repo2)
 	fmt.Println("REPOOO-URL", repo2.Url)
 
 	revisionRunJson := ComposeRevisionRun()
 
 	sendRevisionRun(revisionRunJson)
-
-	// fmt.Println(string(revisionRunJson))
-
-	// fmt.Println("CLIENT STARTED CONNECTING TO.. " + address)
-
-	// conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// defer conn.Close()
-
-	// stsClient := NewClient(conn, time.Second)
-	// err = stsClient.CreateRevisionRun(context.Background(), bytes.NewBuffer(revisionRunJson))
-
-	// fmt.Println("ERR:", err)
-
-	// maps := make(map[string]interface{})
-
-	// u.Object, _ = runtime.DefaultUnstructuredConverter.ToUnstructured(maps)
-
-	// fmt.Println(maps)
 
 	return ctrl.Result{}, nil
 }
