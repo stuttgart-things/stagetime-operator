@@ -56,3 +56,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - stagetime.sthings.tiab.ssc.sva.de
+  resources:
+  - pipelineruntemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - stagetime.sthings.tiab.ssc.sva.de
+  resources:
+  - pipelineruntemplates/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - stagetime.sthings.tiab.ssc.sva.de
+  resources:
+  - pipelineruntemplates/status
+  verbs:
+  - get
+  - patch
+  - update

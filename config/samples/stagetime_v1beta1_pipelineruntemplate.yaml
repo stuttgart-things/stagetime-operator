@@ -1,0 +1,26 @@
+---
+apiVersion: stagetime.sthings.tiab.ssc.sva.de/v1beta1
+kind: PipelineRunTemplate
+metadata:
+  labels:
+    app.kubernetes.io/name: pipelineruntemplate
+    app.kubernetes.io/instance: pipelineruntemplate-sample
+    app.kubernetes.io/part-of: stagetime-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: stagetime-operator
+  name: pipelineruntemplate-sample
+spec:
+  stage: 0
+  resolver:
+    - url=https://github.com/stuttgart-things/stuttgart-things.git
+    - revision=main
+    - pathInRepo=stageTime/pipelines/simulate-stagetime-pipelineruns.yaml
+  params:
+    - gitRevision=main
+    - gitRepoUrl=https://github.com/stuttgart-things/stageTime-server.git
+    - gitWorkspaceSubdirectory=stageTime
+    - scriptPath=tests/prime.sh
+    - scriptTimeout=25s
+  vclaims:
+    - source=openebs-hostpath;ReadWriteOnce;20Mi
+  #listparams:

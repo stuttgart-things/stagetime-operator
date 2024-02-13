@@ -74,6 +74,14 @@ type Repo struct {
 	Url string `json:"url"`
 }
 
+type PipelineRunTemplate struct {
+	Stage      int      `json:"stage"`
+	Resolver   []string `json:"resolver"`
+	Params     []string `json:"params"`
+	ListParams []string `json:"listparams,omitempty"`
+	Vclaims    []string `json:"vclaims,omitempty"`
+}
+
 var (
 	address = "stagetime-server-service.stagetime.svc.cluster.local:80"
 )
@@ -104,6 +112,17 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	_ = json.Unmarshal(repoSpec, &repo2)
 
 	fmt.Println("REPOOO-URL", repo2.Url)
+
+	pipelineRunTemplate := PipelineRunTemplate{}
+	pipelineRunTemplateSpec := getUnstructuredStructSpec("stagetime.sthings.tiab.ssc.sva.de", "PipelineRunTemplate", "v1beta1", "pipelineruntemplate-sample", "stagetime-operator-system", r)
+
+	_ = json.Unmarshal(pipelineRunTemplateSpec, &pipelineRunTemplate)
+
+	fmt.Println("RESOLVER", pipelineRunTemplate.Resolver)
+	fmt.Println("STAGE", pipelineRunTemplate.Stage)
+	fmt.Println("PARAMS", pipelineRunTemplate.Params)
+	fmt.Println("VCLAIMS", pipelineRunTemplate.Vclaims)
+	fmt.Println("LISTPARAMS", pipelineRunTemplate.ListParams)
 
 	revisionRunJson := ComposeRevisionRun()
 
