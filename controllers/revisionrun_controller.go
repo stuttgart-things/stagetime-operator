@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -49,9 +50,13 @@ type RevisionRunReconciler struct {
 }
 
 var (
-	address            = "stagetime-server-service.stagetime.svc.cluster.local:80"
-	resolverOverwrites = make(map[string]interface{})
-	paramsOverwrites   = make(map[string]interface{})
+	address              = "stagetime-server-service.stagetime.svc.cluster.local:80"
+	resolverOverwrites   = make(map[string]interface{})
+	paramsOverwrites     = make(map[string]interface{})
+	vclaimsOverwrites    = make(map[string]interface{})
+	listParamsOverwrites = make(map[string]interface{})
+	overwriteParams      = make(map[string]interface{})
+	allPipelineRuns      []Pipelinerun
 )
 
 //+kubebuilder:rbac:groups=stagetime.sthings.tiab.ssc.sva.de,resources=revisionruns,verbs=get;list;watch;create;update;patch;delete
@@ -114,36 +119,82 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		if !prExists {
 			break
 		} else {
+			// CHECK FOR OVERWRITES
 			if config.Resolver != "" {
 				resolverOverwrites = createOverwriteParams(config.Resolver)
 				log.Info("RESOLVER OVERWRITES")
 				resolverParams := renderParams(pipelineRunTemplate.Resolver, resolverOverwrites)
 				fmt.Println(resolverParams)
-
+				overwriteParams["RESOLVER"] = resolverParams
+			} else {
+				overwriteParams["RESOLVER"] = strings.Join(pipelineRunTemplate.Resolver, ", ")
 			}
 
 			if config.Params != "" {
 				fmt.Println(config.Params)
 				paramsOverwrites = createOverwriteParams(config.Params)
 				log.Info("PARAMS OVERWRITES")
-			}
-
-			// CHECK FOR OVERWRITES
-			if config.Path != "" {
-				fmt.Println(config.Path)
-			}
-
-			if config.Stage != 99 {
-				fmt.Println(config.Stage)
+				paramsParams := renderParams(pipelineRunTemplate.Params, paramsOverwrites)
+				fmt.Println(paramsParams)
+				overwriteParams["PARAMS"] = paramsParams
+			} else {
+				overwriteParams["PARAMS"] = strings.Join(pipelineRunTemplate.Params, ", ")
 			}
 
 			if config.Listparams != "" {
 				fmt.Println(config.Listparams)
+				listParamsOverwrites = createOverwriteParams(config.Listparams)
+				log.Info("LISTPARAMS OVERWRITES")
+				listParamsParams := renderParams(pipelineRunTemplate.ListParams, listParamsOverwrites)
+				fmt.Println(listParamsParams)
+				overwriteParams["LISTPARAMS"] = listParamsParams
+			} else {
+				overwriteParams["LISTPARAMS"] = strings.Join(pipelineRunTemplate.ListParams, ", ")
 			}
 
 			if config.Vclaims != "" {
 				fmt.Println(config.Vclaims)
+				vclaimsOverwrites = createOverwriteParams(config.Listparams)
+				log.Info("LISTPARAMS OVERWRITES")
+				vclaimParams := renderParams(pipelineRunTemplate.Vclaims, vclaimsOverwrites)
+				fmt.Println(vclaimParams)
+				overwriteParams["VCLAIMS"] = pipelineRunTemplate.Vclaims
+			} else {
+				overwriteParams["VCLAIMS"] = strings.Join(pipelineRunTemplate.Vclaims, ", ")
 			}
+
+			if config.Path != "" {
+				fmt.Println("PATH")
+				fmt.Println(config.Path)
+			}
+
+			fmt.Println("1")
+
+			overwriteParams["CANFAIL"] = config.Canfail
+
+			fmt.Println("2")
+
+			if config.Stage != 99 {
+				overwriteParams["STAGE"] = float64(config.Stage)
+			} else {
+				overwriteParams["STAGE"] = float64(pipelineRunTemplate.Stage)
+			}
+
+			fmt.Println("3")
+
+			pipelineRun := Pipelinerun{
+				Name:                 config.ID,
+				Canfail:              overwriteParams["CANFAIL"].(bool),
+				Stage:                overwriteParams["STAGE"].(float64),
+				ResolverParams:       overwriteParams["RESOLVER"].(string),
+				Params:               overwriteParams["PARAMS"].(string),
+				Listparams:           overwriteParams["LISTPARAMS"].(string),
+				VolumeClaimTemplates: overwriteParams["VCLAIMS"].(string),
+			}
+
+			fmt.Println(pipelineRun)
+
+			allPipelineRuns = append(allPipelineRuns, pipelineRun)
 
 		}
 	}

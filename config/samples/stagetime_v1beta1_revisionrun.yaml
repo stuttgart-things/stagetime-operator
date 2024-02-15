@@ -15,10 +15,11 @@ spec:
     - id: docker1
       kind: docker
       path: ./Dockerfile
+      canfail: false
       stage: 0
       resolver: revision=tagged; pathInRepo=this
-
     - id: test
       kind: simulation
       resolver: revision=tagged;
       params: scriptTimeout=10s;
+      canfail: false

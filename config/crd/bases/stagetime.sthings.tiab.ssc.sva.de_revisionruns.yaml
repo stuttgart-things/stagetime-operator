@@ -43,6 +43,9 @@ spec:
                 items:
                   description: SchedulingConfig defines scheduling related properties.
                   properties:
+                    canfail:
+                      default: false
+                      type: boolean
                     id:
                       type: string
                     kind:

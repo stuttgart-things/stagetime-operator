@@ -87,6 +87,8 @@ tasks:
     desc: Build code
     deps: [lint]
     cmds:
+      - make generate
+      - make manifests
       - go mod tidy
       - go install
 

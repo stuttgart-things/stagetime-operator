@@ -55,6 +55,9 @@ spec:
                 items:
                   description: SchedulingConfig defines scheduling related properties.
                   properties:
+                    canfail:
+                      default: false
+                      type: boolean
                     id:
                       type: string
                     kind:
@@ -430,7 +433,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: scr.cd43.sthings-pve.labul.sva.de/stagetime-operator/stagetime-operator:24.0215.1346
+        image: scr.cd43.sthings-pve.labul.sva.de/stagetime-operator/stagetime-operator:24.0215.1943
         livenessProbe:
           httpGet:
             path: /healthz

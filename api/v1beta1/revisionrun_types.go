@@ -26,7 +26,9 @@ type Technologies struct {
 	Kind string `json:"kind"`
 	Path string `json:"path,omitempty"`
 	// +kubebuilder:default=99
-	Stage      int    `json:"stage,omitempty"`
+	Stage int `json:"stage,omitempty"`
+	// +kubebuilder:default=false
+	Canfail    bool   `json:"canfail,omitempty"`
 	Resolver   string `json:"resolver,omitempty"`
 	Params     string `json:"params,omitempty"`
 	Listparams string `json:"listparams,omitempty"`
