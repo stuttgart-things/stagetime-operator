@@ -17,20 +17,18 @@ limitations under the License.
 package controllers
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"time"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 
 	stagetimev1beta1 "github.com/stuttgart-things/stagetime-operator/api/v1beta1"
-	"google.golang.org/grpc/credentials/insecure"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -50,40 +48,10 @@ type RevisionRunReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-type Pipelinerun struct {
-	Name                 string  `json:"name"`
-	Canfail              bool    `json:"canfail"`
-	Stage                float64 `json:"stage"`
-	Params               string  `json:"params"`
-	ResolverParams       string  `json:"resolverParams"`
-	Listparams           string  `json:"listparams"`
-	Workspaces           string  `json:"workspaces"`
-	VolumeClaimTemplates string  `json:"volumeClaimTemplates"`
-}
-
-type RevisionRun struct {
-	RepoName     string        `json:"repo_name"`
-	PushedAt     string        `json:"pushed_at"`
-	Author       string        `json:"author"`
-	RepoUrl      string        `json:"repo_url"`
-	CommitId     string        `json:"commit_id"`
-	Pipelineruns []Pipelinerun `json:"pipelineruns"`
-}
-
-type Repo struct {
-	Url string `json:"url"`
-}
-
-type PipelineRunTemplate struct {
-	Stage      int      `json:"stage"`
-	Resolver   []string `json:"resolver"`
-	Params     []string `json:"params"`
-	ListParams []string `json:"listparams,omitempty"`
-	Vclaims    []string `json:"vclaims,omitempty"`
-}
-
 var (
-	address = "stagetime-server-service.stagetime.svc.cluster.local:80"
+	address            = "stagetime-server-service.stagetime.svc.cluster.local:80"
+	resolverOverwrites = make(map[string]interface{})
+	paramsOverwrites   = make(map[string]interface{})
 )
 
 //+kubebuilder:rbac:groups=stagetime.sthings.tiab.ssc.sva.de,resources=revisionruns,verbs=get;list;watch;create;update;patch;delete
@@ -106,12 +74,89 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	log.Info("⚡️ Event received! ⚡️")
 	log.Info("Request: ", "req", req)
 
-	repo2 := Repo{}
-	repoSpec := getUnstructuredStructSpec("stagetime.sthings.tiab.ssc.sva.de", "Repo", "v1beta1", "repo-sample", "stagetime-operator-system", r)
+	// revisionRunCR := &stagetimev1beta1.RevisionRun{}
+	// err := r.Get(ctx, req.NamespacedName, revisionRunCR)
+	// fmt.Println(revisionRunCR.Spec.TechnologyConfig)
 
-	_ = json.Unmarshal(repoSpec, &repo2)
+	// GET RIVISION RUN
+	revisionRun := &stagetimev1beta1.RevisionRun{}
+	err := r.GetRevisionRun(ctx, req, revisionRun)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			log.Info("RevisionRun RESOURCE NOT FOUND. IGNORING SINCE OBJECT MUST BE DELETED")
 
-	fmt.Println("REPOOO-URL", repo2.Url)
+			return ctrl.Result{}, nil
+		}
+
+		log.Error(err, "FAILED TO GET RevisionRun")
+
+		return ctrl.Result{}, err
+	}
+
+	// TRY TO SET INITIAL CONDITION STATUS
+	err = r.SetInitialCondition(ctx, req, revisionRun)
+	if err != nil {
+		log.Error(err, "FAILED TO SET INITIAL CONDITION")
+
+		return ctrl.Result{}, err
+	}
+
+	// READ TECHNOLOGIES
+	for _, config := range revisionRun.Spec.TechnologyConfig {
+		fmt.Println(config.ID)
+		fmt.Println(config.Kind)
+
+		// READ TEMPLATE - GET DEFAULTS
+		prExists, pipelineRunTemplate := ReadPipelineRunTemplate(config.Kind, r)
+		fmt.Println(prExists, pipelineRunTemplate)
+
+		// CHECK IF TEMPLATE EXISTS - IF NOT SKIP
+		if !prExists {
+			break
+		} else {
+			if config.Resolver != "" {
+				resolverOverwrites = createOverwriteParams(config.Resolver)
+				log.Info("RESOLVER OVERWRITES")
+				resolverParams := renderParams(pipelineRunTemplate.Resolver, resolverOverwrites)
+				fmt.Println(resolverParams)
+
+			}
+
+			if config.Params != "" {
+				fmt.Println(config.Params)
+				paramsOverwrites = createOverwriteParams(config.Params)
+				log.Info("PARAMS OVERWRITES")
+			}
+
+			// CHECK FOR OVERWRITES
+			if config.Path != "" {
+				fmt.Println(config.Path)
+			}
+
+			if config.Stage != 99 {
+				fmt.Println(config.Stage)
+			}
+
+			if config.Listparams != "" {
+				fmt.Println(config.Listparams)
+			}
+
+			if config.Vclaims != "" {
+				fmt.Println(config.Vclaims)
+			}
+
+		}
+	}
+
+	// DO ORDERING OF PIPELINERUNS TO STAGES
+
+	// READ CRDS
+	// repo2 := Repo{}
+	// repoSpec := getUnstructuredStructSpec("stagetime.sthings.tiab.ssc.sva.de", "Repo", "v1beta1", "repo-sample", "stagetime-operator-system", r)
+
+	// _ = json.Unmarshal(repoSpec, &repo2)
+
+	// fmt.Println("REPOOO-URL", repo2.Url)
 
 	pipelineRunTemplate := PipelineRunTemplate{}
 	pipelineRunTemplateSpec := getUnstructuredStructSpec("stagetime.sthings.tiab.ssc.sva.de", "PipelineRunTemplate", "v1beta1", "pipelineruntemplate-sample", "stagetime-operator-system", r)
@@ -123,6 +168,33 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	fmt.Println("PARAMS", pipelineRunTemplate.Params)
 	fmt.Println("VCLAIMS", pipelineRunTemplate.Vclaims)
 	fmt.Println("LISTPARAMS", pipelineRunTemplate.ListParams)
+
+	// var resolverTemplateVars []string
+	// var resolverTemplate string
+
+	// for _, data := range pipelineRunTemplate.Resolver {
+	// 	resolverKV := strings.Split(data, "=")
+	// 	resolverDefaults[resolverKV[0]] = resolverKV[1]
+	// 	resolverTemplateVars = append(resolverTemplateVars, resolverKV[0]+"={{ ."+resolverKV[0]+" }}")
+	// }
+	// resolverTemplate = (strings.Join(resolverTemplateVars, ", "))
+
+	// resolverParams, err := sthingsBase.RenderTemplateInline(resolverTemplate, "missingkey=zero", "{{", "}}", resolverDefaults)
+
+	// if err != nil {
+	// 	fmt.Printf("Error: %s", err)
+	// }
+
+	// fmt.Println(string(resolverParams))
+
+	// resolverParams := renderParams(pipelineRunTemplate.Resolver)
+	// fmt.Println(resolverParams)
+
+	// renderedParams := renderParams(pipelineRunTemplate.Params)
+	// fmt.Println(renderedParams)
+
+	// renderedVclaims := renderParams(pipelineRunTemplate.Vclaims)
+	// fmt.Println(renderedVclaims)
 
 	revisionRunJson := ComposeRevisionRun()
 
@@ -175,80 +247,4 @@ func (c Client) CreateRevisionRun(ctx context.Context, json io.Reader) error {
 	fmt.Println("RESPONSE:", res)
 
 	return nil
-}
-
-func ComposeRevisionRun() (revisionRun []byte) {
-
-	var prs []Pipelinerun
-
-	pr := Pipelinerun{
-		Name:                 "simulate-stagetime",
-		Canfail:              true,
-		Stage:                0,
-		ResolverParams:       "url=https://github.com/stuttgart-things/stuttgart-things.git, revision=main, pathInRepo=stageTime/pipelines/simulate-stagetime-pipelineruns.yaml",
-		Params:               "gitRevision=main, gitRepoUrl=https://github.com/stuttgart-things/stageTime-server.git, gitWorkspaceSubdirectory=stageTime, scriptPath=tests/prime.sh, scriptTimeout=25s",
-		Listparams:           "",
-		VolumeClaimTemplates: "source=openebs-hostpath;ReadWriteOnce;20Mi",
-	}
-
-	prs = append(prs, pr)
-
-	rr := RevisionRun{
-		RepoName:     "stuttgart-things",
-		PushedAt:     "2024-01-13T13:40:36Z",
-		Author:       "patrick-hermann-sva",
-		RepoUrl:      "https://codehub.sva.de/Lab/stuttgart-things/stuttgart-things.git",
-		CommitId:     "135866d3v43453",
-		Pipelineruns: prs,
-	}
-
-	rrJson, err := json.Marshal(rr)
-	if err != nil {
-		fmt.Printf("Error: %s", err)
-		return
-	}
-
-	return rrJson
-
-}
-
-func getUnstructuredStructSpec(group, kind, version, name, namespace string, r *RevisionRunReconciler) []byte {
-
-	u := &unstructured.Unstructured{}
-	u.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   group,
-		Kind:    kind,
-		Version: version,
-	})
-
-	_ = r.Client.Get(context.Background(), client.ObjectKey{
-		Name:      name,
-		Namespace: namespace,
-	}, u)
-
-	specContent := u.UnstructuredContent()["spec"]
-	fmt.Println(specContent)
-
-	interfaceBytes, _ := json.Marshal(specContent)
-
-	return interfaceBytes
-
-}
-
-func sendRevisionRun(revisionRunJson []byte) {
-
-	fmt.Println("CLIENT STARTED CONNECTING TO.. " + address)
-
-	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer conn.Close()
-
-	stsClient := NewClient(conn, time.Second)
-	err = stsClient.CreateRevisionRun(context.Background(), bytes.NewBuffer(revisionRunJson))
-
-	fmt.Println("ERR:", err)
-
 }

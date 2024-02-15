@@ -83,9 +83,16 @@ tasks:
       - cmd: golangci-lint run
         ignore_error: true
 
+  build:
+    desc: Build code
+    deps: [lint]
+    cmds:
+      - go mod tidy
+      - go install
+
   image:
     desc: Build container image
-    deps: [lint]
+    deps: [build]
     cmds:
       - sudo {{ .CONTAINER_RUNTIME_CMD }} build -t {{ .REGISTRY }}/{{ .REPOSITORY_NAME }}/{{ lower (.PROJECT_NAME) }}:{{ .DATE }} .
       - sudo {{ .CONTAINER_RUNTIME_CMD }} push {{ .REGISTRY }}/{{ .REPOSITORY_NAME }}/{{ lower (.PROJECT_NAME) }}:{{ .DATE }}

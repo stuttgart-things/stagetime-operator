@@ -11,3 +11,14 @@ metadata:
   name: revisionrun-sample
 spec:
   repository: stuttgart-things
+  technologies:
+    - id: docker1
+      kind: docker
+      path: ./Dockerfile
+      stage: 0
+      resolver: revision=tagged; pathInRepo=this
+
+    - id: test
+      kind: simulation
+      resolver: revision=tagged;
+      params: scriptTimeout=10s;

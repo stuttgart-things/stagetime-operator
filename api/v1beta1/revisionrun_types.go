@@ -20,19 +20,31 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+// SchedulingConfig defines scheduling related properties.
+type Technologies struct {
+	ID   string `json:"id"`
+	Kind string `json:"kind"`
+	Path string `json:"path,omitempty"`
+	// +kubebuilder:default=99
+	Stage      int    `json:"stage,omitempty"`
+	Resolver   string `json:"resolver,omitempty"`
+	Params     string `json:"params,omitempty"`
+	Listparams string `json:"listparams,omitempty"`
+	Vclaims    string `json:"vclaims,omitempty"`
+}
 
 // RevisionRunSpec defines the desired state of RevisionRun
 type RevisionRunSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
-	Repository string `json:"repository"`
+	Repository       string          `json:"repository"`
+	TechnologyConfig []*Technologies `json:"technologies"`
 }
 
 // RevisionRunStatus defines the observed state of RevisionRun
 type RevisionRunStatus struct {
+	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
+
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 }
