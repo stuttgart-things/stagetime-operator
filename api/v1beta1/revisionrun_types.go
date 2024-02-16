@@ -39,6 +39,7 @@ type Technologies struct {
 type RevisionRunSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Revision         string          `json:"revision,omitempty"`
 	Repository       string          `json:"repository"`
 	TechnologyConfig []*Technologies `json:"technologies"`
 }

@@ -11,6 +11,7 @@ metadata:
   name: revisionrun-simulation
 spec:
   repository: stuttgart-things
+  # revision: ad31212465653
   technologies:
     # - id: docker1
     #   kind: docker
@@ -18,7 +19,7 @@ spec:
     #   canfail: false
     #   stage: 0
     #   resolver: revision=tagged; pathInRepo=this
-    - id: test
+    - id: test0
       kind: simulation
       resolver: revision=main
       params: scriptTimeout=10s

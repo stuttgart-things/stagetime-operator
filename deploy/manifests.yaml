@@ -48,6 +48,8 @@ spec:
             description: RevisionRunSpec defines the desired state of RevisionRun
             properties:
               repository:
+                type: string
+              revision:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                   Important: Run "make" to regenerate code after modifying this file'
                 type: string
@@ -433,7 +435,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: scr.cd43.sthings-pve.labul.sva.de/stagetime-operator/stagetime-operator:24.0216.0856
+        image: scr.cd43.sthings-pve.labul.sva.de/stagetime-operator/stagetime-operator:24.0216.1322
         livenessProbe:
           httpGet:
             path: /healthz

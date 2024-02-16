@@ -55,7 +55,9 @@ var (
 	vclaimsOverwrites    = make(map[string]interface{})
 	listParamsOverwrites = make(map[string]interface{})
 	overwriteParams      = make(map[string]interface{})
+	revisionRunParams    = make(map[string]interface{})
 	allPipelineRuns      []Pipelinerun
+	revisionIDPool       = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 )
 
 //+kubebuilder:rbac:groups=stagetime.sthings.tiab.ssc.sva.de,resources=revisionruns,verbs=get;list;watch;create;update;patch;delete
@@ -193,55 +195,25 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 
+	if revisionRun.Spec.Revision != "" {
+		revisionRunParams["REVSION"] = revisionRun.Spec.Revision
+	} else {
+		revisionRunParams["REVSION"] = generateRandomRevisionRunID(12, revisionIDPool)
+	}
+
+	// SET REVISIONRUN DETAILS
+	revisionRunToSend := RevisionRun{
+		RepoName:     "stuttgart-things",
+		PushedAt:     "2024-01-13T13:40:36Z",
+		Author:       "patrick-hermann-sva",
+		RepoUrl:      "https://codehub.sva.de/Lab/stuttgart-things/stuttgart-things.git",
+		CommitId:     revisionRunParams["REVSION"].(string),
+		Pipelineruns: allPipelineRuns,
+	}
+
 	// DO ORDERING OF PIPELINERUNS TO STAGES
 
-	// READ CRDS
-	// repo2 := Repo{}
-	// repoSpec := getUnstructuredStructSpec("stagetime.sthings.tiab.ssc.sva.de", "Repo", "v1beta1", "repo-sample", "stagetime-operator-system", r)
-
-	// _ = json.Unmarshal(repoSpec, &repo2)
-
-	// fmt.Println("REPOOO-URL", repo2.Url)
-
-	// pipelineRunTemplate := PipelineRunTemplate{}
-	// pipelineRunTemplateSpec := getUnstructuredStructSpec("stagetime.sthings.tiab.ssc.sva.de", "PipelineRunTemplate", "v1beta1", "pipelineruntemplate-sample", "stagetime-operator-system", r)
-
-	// _ = json.Unmarshal(pipelineRunTemplateSpec, &pipelineRunTemplate)
-
-	// fmt.Println("RESOLVER", pipelineRunTemplate.Resolver)
-	// fmt.Println("STAGE", pipelineRunTemplate.Stage)
-	// fmt.Println("PARAMS", pipelineRunTemplate.Params)
-	// fmt.Println("VCLAIMS", pipelineRunTemplate.Vclaims)
-	// fmt.Println("LISTPARAMS", pipelineRunTemplate.ListParams)
-
-	// var resolverTemplateVars []string
-	// var resolverTemplate string
-
-	// for _, data := range pipelineRunTemplate.Resolver {
-	// 	resolverKV := strings.Split(data, "=")
-	// 	resolverDefaults[resolverKV[0]] = resolverKV[1]
-	// 	resolverTemplateVars = append(resolverTemplateVars, resolverKV[0]+"={{ ."+resolverKV[0]+" }}")
-	// }
-	// resolverTemplate = (strings.Join(resolverTemplateVars, ", "))
-
-	// resolverParams, err := sthingsBase.RenderTemplateInline(resolverTemplate, "missingkey=zero", "{{", "}}", resolverDefaults)
-
-	// if err != nil {
-	// 	fmt.Printf("Error: %s", err)
-	// }
-
-	// fmt.Println(string(resolverParams))
-
-	// resolverParams := renderParams(pipelineRunTemplate.Resolver)
-	// fmt.Println(resolverParams)
-
-	// renderedParams := renderParams(pipelineRunTemplate.Params)
-	// fmt.Println(renderedParams)
-
-	// renderedVclaims := renderParams(pipelineRunTemplate.Vclaims)
-	// fmt.Println(renderedVclaims)
-
-	revisionRunJson := ComposeRevisionRun(allPipelineRuns)
+	revisionRunJson := ComposeRevisionRun(revisionRunToSend)
 
 	sendRevisionRun(revisionRunJson)
 

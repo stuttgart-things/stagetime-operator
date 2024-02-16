@@ -36,6 +36,8 @@ spec:
             description: RevisionRunSpec defines the desired state of RevisionRun
             properties:
               repository:
+                type: string
+              revision:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                   Important: Run "make" to regenerate code after modifying this file'
                 type: string

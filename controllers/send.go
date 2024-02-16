@@ -47,30 +47,7 @@ type RevisionRun struct {
 	Pipelineruns []Pipelinerun `json:"pipelineruns"`
 }
 
-func ComposeRevisionRun(prs []Pipelinerun) (revisionRun []byte) {
-
-	// var
-
-	// pr := Pipelinerun{
-	// 	Name:                 "simulate-stagetime",
-	// 	Canfail:              true,
-	// 	Stage:                0,
-	// 	ResolverParams:       "url=https://github.com/stuttgart-things/stuttgart-things.git, revision=main, pathInRepo=stageTime/pipelines/simulate-stagetime-pipelineruns.yaml",
-	// 	Params:               "gitRevision=main, gitRepoUrl=https://github.com/stuttgart-things/stageTime-server.git, gitWorkspaceSubdirectory=stageTime, scriptPath=tests/prime.sh, scriptTimeout=25s",
-	// 	Listparams:           "",
-	// 	VolumeClaimTemplates: "source=openebs-hostpath;ReadWriteOnce;20Mi",
-	// }
-
-	// prs = append(prs, pr)
-
-	rr := RevisionRun{
-		RepoName:     "stuttgart-things",
-		PushedAt:     "2024-01-13T13:40:36Z",
-		Author:       "patrick-hermann-sva",
-		RepoUrl:      "https://codehub.sva.de/Lab/stuttgart-things/stuttgart-things.git",
-		CommitId:     "135866d3v43453",
-		Pipelineruns: prs,
-	}
+func ComposeRevisionRun(rr RevisionRun) (revisionRun []byte) {
 
 	rrJson, err := json.Marshal(rr)
 	if err != nil {

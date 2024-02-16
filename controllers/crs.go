@@ -20,7 +20,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/samber/lo"
 
@@ -136,4 +138,15 @@ func createOverwriteParams(params string) (defaults map[string]interface{}) {
 	}
 
 	return
+}
+
+func generateRandomRevisionRunID(n int, pool []rune) string {
+
+	rand.Seed(time.Now().UnixNano())
+
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = pool[rand.Intn(len(pool))]
+	}
+	return string(b)
 }
