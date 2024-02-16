@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/part-of: stagetime-operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: stagetime-operator
-  name: pipelineruntemplate-sample
+  name: simulation
   namespace: stagetime-operator-system
 spec:
   stage: 0

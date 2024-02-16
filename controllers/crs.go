@@ -124,6 +124,11 @@ func createOverwriteParams(params string) (defaults map[string]interface{}) {
 	defaults = make(map[string]interface{})
 
 	paramsList := strings.Split(params, ";")
+	fmt.Println(paramsList)
+
+	// if string ends with ; we should cut if off here
+	// CR working resolver: revision=main
+	// CR not working resolver: revision=main; INDEX OUT OF LOOP
 
 	for _, data := range paramsList {
 		keyValues := strings.Split(data, "=")

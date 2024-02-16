@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -118,6 +117,7 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		// CHECK IF TEMPLATE EXISTS - IF NOT SKIP
 		if !prExists {
 			break
+
 		} else {
 			// CHECK FOR OVERWRITES
 			if config.Resolver != "" {
@@ -168,19 +168,13 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 				fmt.Println(config.Path)
 			}
 
-			fmt.Println("1")
-
 			overwriteParams["CANFAIL"] = config.Canfail
-
-			fmt.Println("2")
 
 			if config.Stage != 99 {
 				overwriteParams["STAGE"] = float64(config.Stage)
 			} else {
 				overwriteParams["STAGE"] = float64(pipelineRunTemplate.Stage)
 			}
-
-			fmt.Println("3")
 
 			pipelineRun := Pipelinerun{
 				Name:                 config.ID,
@@ -209,16 +203,16 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	// fmt.Println("REPOOO-URL", repo2.Url)
 
-	pipelineRunTemplate := PipelineRunTemplate{}
-	pipelineRunTemplateSpec := getUnstructuredStructSpec("stagetime.sthings.tiab.ssc.sva.de", "PipelineRunTemplate", "v1beta1", "pipelineruntemplate-sample", "stagetime-operator-system", r)
+	// pipelineRunTemplate := PipelineRunTemplate{}
+	// pipelineRunTemplateSpec := getUnstructuredStructSpec("stagetime.sthings.tiab.ssc.sva.de", "PipelineRunTemplate", "v1beta1", "pipelineruntemplate-sample", "stagetime-operator-system", r)
 
-	_ = json.Unmarshal(pipelineRunTemplateSpec, &pipelineRunTemplate)
+	// _ = json.Unmarshal(pipelineRunTemplateSpec, &pipelineRunTemplate)
 
-	fmt.Println("RESOLVER", pipelineRunTemplate.Resolver)
-	fmt.Println("STAGE", pipelineRunTemplate.Stage)
-	fmt.Println("PARAMS", pipelineRunTemplate.Params)
-	fmt.Println("VCLAIMS", pipelineRunTemplate.Vclaims)
-	fmt.Println("LISTPARAMS", pipelineRunTemplate.ListParams)
+	// fmt.Println("RESOLVER", pipelineRunTemplate.Resolver)
+	// fmt.Println("STAGE", pipelineRunTemplate.Stage)
+	// fmt.Println("PARAMS", pipelineRunTemplate.Params)
+	// fmt.Println("VCLAIMS", pipelineRunTemplate.Vclaims)
+	// fmt.Println("LISTPARAMS", pipelineRunTemplate.ListParams)
 
 	// var resolverTemplateVars []string
 	// var resolverTemplate string
@@ -247,7 +241,7 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// renderedVclaims := renderParams(pipelineRunTemplate.Vclaims)
 	// fmt.Println(renderedVclaims)
 
-	revisionRunJson := ComposeRevisionRun()
+	revisionRunJson := ComposeRevisionRun(allPipelineRuns)
 
 	sendRevisionRun(revisionRunJson)
 

@@ -4,22 +4,33 @@ kind: RevisionRun
 metadata:
   labels:
     app.kubernetes.io/name: revisionrun
-    app.kubernetes.io/instance: revisionrun-sample
+    app.kubernetes.io/instance: revisionrun-simulation
     app.kubernetes.io/part-of: stagetime-operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: stagetime-operator
-  name: revisionrun-sample
+  name: revisionrun-simulation
 spec:
   repository: stuttgart-things
   technologies:
-    - id: docker1
-      kind: docker
-      path: ./Dockerfile
-      canfail: false
-      stage: 0
-      resolver: revision=tagged; pathInRepo=this
+    # - id: docker1
+    #   kind: docker
+    #   path: ./Dockerfile
+    #   canfail: false
+    #   stage: 0
+    #   resolver: revision=tagged; pathInRepo=this
     - id: test
       kind: simulation
-      resolver: revision=tagged;
-      params: scriptTimeout=10s;
+      resolver: revision=main
+      params: scriptTimeout=10s
       canfail: false
+    - id: test1
+      kind: simulation
+      resolver: revision=main
+      params: scriptTimeout=25s
+      canfail: true
+    # - id: test2
+    #   kind: simulation
+    # #   stage: 0
+    #   resolver: revision=main;
+    #   params: scriptTimeout=15s;
+    #   canfail: true

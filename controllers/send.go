@@ -47,21 +47,21 @@ type RevisionRun struct {
 	Pipelineruns []Pipelinerun `json:"pipelineruns"`
 }
 
-func ComposeRevisionRun() (revisionRun []byte) {
+func ComposeRevisionRun(prs []Pipelinerun) (revisionRun []byte) {
 
-	var prs []Pipelinerun
+	// var
 
-	pr := Pipelinerun{
-		Name:                 "simulate-stagetime",
-		Canfail:              true,
-		Stage:                0,
-		ResolverParams:       "url=https://github.com/stuttgart-things/stuttgart-things.git, revision=main, pathInRepo=stageTime/pipelines/simulate-stagetime-pipelineruns.yaml",
-		Params:               "gitRevision=main, gitRepoUrl=https://github.com/stuttgart-things/stageTime-server.git, gitWorkspaceSubdirectory=stageTime, scriptPath=tests/prime.sh, scriptTimeout=25s",
-		Listparams:           "",
-		VolumeClaimTemplates: "source=openebs-hostpath;ReadWriteOnce;20Mi",
-	}
+	// pr := Pipelinerun{
+	// 	Name:                 "simulate-stagetime",
+	// 	Canfail:              true,
+	// 	Stage:                0,
+	// 	ResolverParams:       "url=https://github.com/stuttgart-things/stuttgart-things.git, revision=main, pathInRepo=stageTime/pipelines/simulate-stagetime-pipelineruns.yaml",
+	// 	Params:               "gitRevision=main, gitRepoUrl=https://github.com/stuttgart-things/stageTime-server.git, gitWorkspaceSubdirectory=stageTime, scriptPath=tests/prime.sh, scriptTimeout=25s",
+	// 	Listparams:           "",
+	// 	VolumeClaimTemplates: "source=openebs-hostpath;ReadWriteOnce;20Mi",
+	// }
 
-	prs = append(prs, pr)
+	// prs = append(prs, pr)
 
 	rr := RevisionRun{
 		RepoName:     "stuttgart-things",
@@ -83,6 +83,8 @@ func ComposeRevisionRun() (revisionRun []byte) {
 }
 
 func sendRevisionRun(revisionRunJson []byte) {
+
+	fmt.Println(string(revisionRunJson))
 
 	fmt.Println("CLIENT STARTED CONNECTING TO.. " + address)
 
