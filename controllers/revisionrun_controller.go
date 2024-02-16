@@ -1,5 +1,5 @@
 /*
-Copyright 2024 patrick.
+Copyright 2024 PATRICK HERMANN patrick.hermann@sva.de
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -201,20 +201,30 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		revisionRunParams["REVSION"] = generateRandomRevisionRunID(12, revisionIDPool)
 	}
 
+	// SHOULD BE RETRIVED FROM REPO CR
+	revisionRunParams["REPONAME"] = "stuttgart-things"
+	revisionRunParams["REPOURL"] = "https://codehub.sva.de/Lab/stuttgart-things/stuttgart-things.git"
+
+	// SHOULD BE RETRIVED FROM GIT
+	revisionRunParams["DATE"] = time.Now().Format(time.RFC3339)
+	revisionRunParams["AUTHOR"] = "stagetime-operator"
+
 	// SET REVISIONRUN DETAILS
 	revisionRunToSend := RevisionRun{
-		RepoName:     "stuttgart-things",
-		PushedAt:     "2024-01-13T13:40:36Z",
-		Author:       "patrick-hermann-sva",
-		RepoUrl:      "https://codehub.sva.de/Lab/stuttgart-things/stuttgart-things.git",
+		RepoName:     revisionRunParams["REPONAME"].(string),
+		PushedAt:     revisionRunParams["DATE"].(string),
+		Author:       revisionRunParams["AUTHOR"].(string),
+		RepoUrl:      revisionRunParams["REPOURL"].(string),
 		CommitId:     revisionRunParams["REVSION"].(string),
 		Pipelineruns: allPipelineRuns,
 	}
 
 	// DO ORDERING OF PIPELINERUNS TO STAGES
 
+	// COMPOSE REVISIONRUN
 	revisionRunJson := ComposeRevisionRun(revisionRunToSend)
 
+	// SEND REVISIONRUN TO STAGETIME SERVER
 	sendRevisionRun(revisionRunJson)
 
 	return ctrl.Result{}, nil

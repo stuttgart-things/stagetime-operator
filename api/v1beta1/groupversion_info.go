@@ -1,5 +1,5 @@
 /*
-Copyright 2024 patrick.
+Copyright 2024 PATRICK HERMANN patrick.hermann@sva.de
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
