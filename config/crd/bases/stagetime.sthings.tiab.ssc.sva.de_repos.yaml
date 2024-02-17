@@ -35,10 +35,16 @@ spec:
           spec:
             description: RepoSpec defines the desired state of Repo
             properties:
-              url:
+              name:
+                type: string
+              organization:
+                type: string
+              branch:
                 type: string
             required:
-            - url
+            - name
+            - organization
+            - branch
             type: object
           status:
             description: RepoStatus defines the observed state of Repo

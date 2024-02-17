@@ -23,6 +23,8 @@ import (
 	"strings"
 	"time"
 
+	sthingsCli "github.com/stuttgart-things/sthingsCli"
+
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
@@ -195,37 +197,49 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 
-	if revisionRun.Spec.Revision != "" {
-		revisionRunParams["REVSION"] = revisionRun.Spec.Revision
+	repoExists, repository := ReadRepository(revisionRun.Spec.Repository, r)
+
+	fmt.Println(repoExists, repository.Name)
+	fmt.Println(repoExists, repository.Branch)
+	fmt.Println(repoExists, repository.Organization)
+
+	if repoExists {
+		if revisionRun.Spec.Revision != "" {
+			revisionRunParams["REVSION"] = revisionRun.Spec.Revision
+		} else {
+			bla, he, err := sthingsCli.GetCommitInformationFromGithubRepo("stuttgart-things", "kaeffken", "feature/issue-1/test", "latest")
+			fmt.Println(bla, he, err)
+
+			revisionRunParams["REVSION"] = generateRandomRevisionRunID(12, revisionIDPool)
+		}
+		// SHOULD BE RETRIVED FROM REPO CR
+		revisionRunParams["REPONAME"] = repository.Name
+		revisionRunParams["REPOURL"] = "https://github.com/" + repository.Name + "/" + repository.Organization + ".gitk9"
+		// SHOULD BE RETRIVED FROM GIT
+		revisionRunParams["DATE"] = time.Now().Format(time.RFC3339)
+		revisionRunParams["AUTHOR"] = "stagetime-operator"
+
+		// SET REVISIONRUN DETAILS
+		revisionRunToSend := RevisionRun{
+			RepoName:     revisionRunParams["REPONAME"].(string),
+			PushedAt:     revisionRunParams["DATE"].(string),
+			Author:       revisionRunParams["AUTHOR"].(string),
+			RepoUrl:      revisionRunParams["REPOURL"].(string),
+			CommitId:     revisionRunParams["REVSION"].(string),
+			Pipelineruns: allPipelineRuns,
+		}
+
+		// DO ORDERING OF PIPELINERUNS TO STAGES
+
+		// SEND REVISIONRUN TO STAGETIME SERVER
+
+		// COMPOSE REVISIONRUN
+		revisionRunJson := ComposeRevisionRun(revisionRunToSend)
+		sendRevisionRun(revisionRunJson)
+
 	} else {
-		revisionRunParams["REVSION"] = generateRandomRevisionRunID(12, revisionIDPool)
+		log.Error(err, "FAILED TO GET REPO")
 	}
-
-	// SHOULD BE RETRIVED FROM REPO CR
-	revisionRunParams["REPONAME"] = "stuttgart-things"
-	revisionRunParams["REPOURL"] = "https://codehub.sva.de/Lab/stuttgart-things/stuttgart-things.git"
-
-	// SHOULD BE RETRIVED FROM GIT
-	revisionRunParams["DATE"] = time.Now().Format(time.RFC3339)
-	revisionRunParams["AUTHOR"] = "stagetime-operator"
-
-	// SET REVISIONRUN DETAILS
-	revisionRunToSend := RevisionRun{
-		RepoName:     revisionRunParams["REPONAME"].(string),
-		PushedAt:     revisionRunParams["DATE"].(string),
-		Author:       revisionRunParams["AUTHOR"].(string),
-		RepoUrl:      revisionRunParams["REPOURL"].(string),
-		CommitId:     revisionRunParams["REVSION"].(string),
-		Pipelineruns: allPipelineRuns,
-	}
-
-	// DO ORDERING OF PIPELINERUNS TO STAGES
-
-	// COMPOSE REVISIONRUN
-	revisionRunJson := ComposeRevisionRun(revisionRunToSend)
-
-	// SEND REVISIONRUN TO STAGETIME SERVER
-	sendRevisionRun(revisionRunJson)
 
 	return ctrl.Result{}, nil
 }

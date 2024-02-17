@@ -33,7 +33,9 @@ import (
 )
 
 type Repo struct {
-	Url string `json:"url"`
+	Name         string `json:"name"`
+	Branch       string `json:"branch"`
+	Organization string `json:"organization"`
 }
 
 type PipelineRunTemplate struct {
@@ -49,23 +51,38 @@ var (
 	stageTimeApiVersion      = "v1beta1"
 	projectTemplateNamespace = "stagetime-operator-system"
 	prTemplateResource       = "PipelineRunTemplate"
+	repoResource             = "Repo"
 )
+
+func ReadRepository(crName string, r *RevisionRunReconciler) (bool, Repo) {
+
+	repository := Repo{}
+	repoSpec := getUnstructuredStructSpec(stageTimeApi, repoResource, stageTimeApiVersion, crName, projectTemplateNamespace, r)
+
+	if len(repoSpec) <= 4 {
+		fmt.Println(crName, " NOT FOUND")
+		return false, repository
+	} else {
+		fmt.Println(crName, " FOUND")
+
+		_ = json.Unmarshal(repoSpec, &repository)
+		return true, repository
+	}
+
+}
 
 func ReadPipelineRunTemplate(crName string, r *RevisionRunReconciler) (bool, PipelineRunTemplate) {
 
 	pipelineRunTemplate := PipelineRunTemplate{}
-	repoSpec := getUnstructuredStructSpec(stageTimeApi, prTemplateResource, stageTimeApiVersion, crName, projectTemplateNamespace, r)
+	prTemplateSpec := getUnstructuredStructSpec(stageTimeApi, prTemplateResource, stageTimeApiVersion, crName, projectTemplateNamespace, r)
 
-	fmt.Println(crName)
-	fmt.Println(len(repoSpec))
-
-	if len(repoSpec) <= 4 {
+	if len(prTemplateSpec) <= 4 {
 		fmt.Println(crName, " NOT FOUND")
 		return false, pipelineRunTemplate
 	} else {
 		fmt.Println(crName, " FOUND")
 
-		_ = json.Unmarshal(repoSpec, &pipelineRunTemplate)
+		_ = json.Unmarshal(prTemplateSpec, &pipelineRunTemplate)
 		return true, pipelineRunTemplate
 	}
 

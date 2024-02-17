@@ -4,11 +4,13 @@ kind: Repo
 metadata:
   labels:
     app.kubernetes.io/name: repo
-    app.kubernetes.io/instance: repo-sample
+    app.kubernetes.io/instance: stuttgart-things
     app.kubernetes.io/part-of: stagetime-operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: stagetime-operator
-  name: repo-sample
+  name: stuttgart-things
   namespace: stagetime-operator-system
 spec:
-  url: https://github.com/stuttgart-things/stuttgart-things.git
+  name: stuttgart-things
+  organization: stuttgart-things
+  branch: main
