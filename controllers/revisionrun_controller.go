@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"reflect"
 	"strings"
 	"time"
 
@@ -206,18 +207,29 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if repoExists {
 		if revisionRun.Spec.Revision != "" {
 			revisionRunParams["REVSION"] = revisionRun.Spec.Revision
-		} else {
-			bla, he, err := sthingsCli.GetCommitInformationFromGithubRepo("stuttgart-things", "kaeffken", "feature/issue-1/test", "latest")
-			fmt.Println(bla, he, err)
 
-			revisionRunParams["REVSION"] = generateRandomRevisionRunID(12, revisionIDPool)
+		} else {
+			revisionExists, commitInformation, err := sthingsCli.GetCommitInformationFromGithubRepo(repository.Organization, repository.Name, repository.Branch, "latest")
+
+			if revisionExists {
+				revisionRunParams["AUTHOR"] = commitInformation[0]["AUTHOR"]
+				revisionRunParams["REVISION"] = commitInformation[0]["REVISION"]
+
+				fmt.Println(commitInformation[0])
+				fmt.Println(reflect.TypeOf(revisionRunParams["AUTHOR"]))
+				fmt.Println(reflect.TypeOf(revisionRunParams["REVISION"]))
+
+			} else {
+				fmt.Println(err)
+				revisionRunParams["AUTHOR"] = "stagetime-operator"
+				revisionRunParams["REVISION"] = generateRandomRevisionRunID(12, revisionIDPool)
+			}
+
 		}
-		// SHOULD BE RETRIVED FROM REPO CR
+
 		revisionRunParams["REPONAME"] = repository.Name
-		revisionRunParams["REPOURL"] = "https://github.com/" + repository.Name + "/" + repository.Organization + ".gitk9"
-		// SHOULD BE RETRIVED FROM GIT
+		revisionRunParams["REPOURL"] = "https://github.com/" + repository.Name + "/" + repository.Organization + ".git"
 		revisionRunParams["DATE"] = time.Now().Format(time.RFC3339)
-		revisionRunParams["AUTHOR"] = "stagetime-operator"
 
 		// SET REVISIONRUN DETAILS
 		revisionRunToSend := RevisionRun{
@@ -225,7 +237,7 @@ func (r *RevisionRunReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			PushedAt:     revisionRunParams["DATE"].(string),
 			Author:       revisionRunParams["AUTHOR"].(string),
 			RepoUrl:      revisionRunParams["REPOURL"].(string),
-			CommitId:     revisionRunParams["REVSION"].(string),
+			CommitId:     revisionRunParams["REVISION"].(string),
 			Pipelineruns: allPipelineRuns,
 		}
 
